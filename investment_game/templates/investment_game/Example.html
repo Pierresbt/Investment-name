@@ -1,0 +1,69 @@
+{{ block title }}
+Example
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+<p>
+Before the experiment starts, here is a simple example of how the investment game works.
+</p>
+
+<hr>
+
+<h4>Example project</h4>
+
+<p>
+Suppose you invest <strong>10 tokens</strong>.
+The project can generate payments over four periods, but it may stop before the end.
+</p>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Period</th>
+        <th>Payment per token invested</th>
+        <th>If you invested 10 tokens</th>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>2</td>
+        <td>20 tokens</td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>1</td>
+        <td>10 tokens</td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>1</td>
+        <td>10 tokens</td>
+    </tr>
+    <tr>
+        <td>4</td>
+        <td>0.5</td>
+        <td>5 tokens</td>
+    </tr>
+</table>
+
+<p>
+If the project survives for <strong>2 periods</strong>, you receive the payments from periods 1 and 2.
+You do <strong>not</strong> receive payments from periods 3 and 4.
+</p>
+
+<h4>20 + 10 = 30 tokens</h4>
+
+<p>
+Any tokens that you did not invest are also kept.
+</p>
+
+<hr>
+
+<p>
+In the real experiment, the payoff table changes across rounds, and you will decide how much to invest.
+</p>
+
+{{ next_button }}
+
+{{ endblock }}

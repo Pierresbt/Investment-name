@@ -1,0 +1,95 @@
+{{ block title }}
+Investment decision
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+<div class="reminder-box">
+    <h4>Reminder</h4>
+
+    <ul>
+        <li>Payoff case: <strong>{{ case }}</strong></li>
+        <li>Public signal: <strong>{{ public_signal }}</strong></li>
+        <li>Continuation probability: <strong>{{ delta_percent }}%</strong></li>
+        {% if buy_info %}
+            <li>Private signal: <strong>{{ private_signal }}</strong></li>
+        {% else %}
+            <li>Private signal: <strong>Not purchased</strong></li>
+        {% endif %}
+    </ul>
+</div>
+
+<h4>Payoff table</h4>
+
+<table class="table table-bordered">
+    <tr>
+        <th></th>
+        <th>Period 1</th>
+        <th>Period 2</th>
+        <th>Period 3</th>
+        <th>Period 4</th>
+    </tr>
+
+    <tr>
+        <td>Chance of reaching this period</td>
+        {% for p in survival_probs %}
+            <td>{{ p }}%</td>
+        {% endfor %}
+    </tr>
+
+    <tr>
+        <td>Good state</td>
+        {% for x in payoff_H %}
+            <td>{{ x }}</td>
+        {% endfor %}
+    </tr>
+
+    <tr>
+        <td>Bad state</td>
+        {% for x in payoff_L %}
+            <td>{{ x }}</td>
+        {% endfor %}
+    </tr>
+</table>
+
+<p>
+Each number tells you how many tokens you receive per token invested, if the project is still active in that period.
+</p>
+
+<p>
+If the project stops, you receive payments from previous periods, but no payment from later periods.
+</p>
+
+<hr>
+
+<p>You can invest between <strong>0 and {{ max_investment }}</strong> tokens.</p>
+<p>Tokens not invested are kept.</p>
+
+<label>
+How many tokens do you want to invest?
+</label>
+
+<input type="range"
+       name="investment"
+       min="0"
+       max="{{ max_investment }}"
+       value=""
+       oninput="investment_value.innerText = this.value; investment_touched.value = 1">
+
+<input type="hidden"
+       name="investment_touched"
+       id="investment_touched"
+       value="0">
+
+<p>
+<strong><span id="investment_value">Move the slider</span></strong>
+</p>
+<p>
+You must enter an amount before continuing.
+</p>
+
+{{ next_button }}
+
+{{ endblock }}

@@ -1,0 +1,23 @@
+{{ block title }}
+Round {{ round_number }} of {{ total_rounds }}
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+<p>Payoff case: <strong>{{ case }}</strong></p>
+
+<hr>
+
+<p>The public signal is:</p>
+
+<h3>{{ public_signal }}</h3>
+
+<p>
+The public signal is correct with probability <strong>60%</strong>.
+</p>
+
+{{ next_button }}
+
+{{ endblock }}

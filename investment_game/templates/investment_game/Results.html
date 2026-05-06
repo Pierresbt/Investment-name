@@ -1,0 +1,35 @@
+{{ block title }}
+Round results
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+<p>The true state of the project was:</p>
+
+<h3>{{ state }}</h3>
+
+<p>The project survived for:</p>
+
+<h3>{{ survival_periods }} period(s)</h3>
+
+{% if survival_periods == 0 %}
+<p>
+The project stopped before the first payment. You did not receive any investment return.
+You kept the tokens that you did not invest.
+</p>
+{% else %}
+<p>
+You received the payments from the first {{ survival_periods }} period(s).
+You did not receive payments from the remaining later periods.
+</p>
+{% endif %}
+
+<p>Your earnings in this round are:</p>
+
+<h3>{{ round_tokens }} tokens</h3>
+
+{{ next_button }}
+
+{{ endblock }}

@@ -1,0 +1,27 @@
+{{ block title }}
+Private signal
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+<h4>Reminder</h4>
+
+<ul>
+    <li>Public signal: <strong>{{ public_signal }}</strong></li>
+    <li>Continuation probability: <strong>{{ delta_percent }}%</strong></li>
+</ul>
+
+<hr>
+
+<p>You bought additional information.</p>
+
+<p>Your private signal is:</p>
+
+<h3>{{ private_signal }}</h3>
+
+<p>The private signal is correct with probability <strong>80%</strong>.</p>
+
+{{ next_button }}
+
+{{ endblock }}

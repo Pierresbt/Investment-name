@@ -1,0 +1,101 @@
+{{ block title }}
+Instructions
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+<h3>Overview</h3>
+
+<p>
+In this experiment, you will make decisions about investment projects.
+Each round starts with an endowment of <strong>100 tokens</strong>.
+</p>
+
+<p>
+At the end of the experiment, <strong>three rounds</strong> will be randomly selected for payment.
+Your bonus will depend on your earnings in these three selected rounds.
+</p>
+
+<hr>
+
+<h3>Project state</h3>
+
+<p>
+Each project can be in either a <strong>good state</strong> or a <strong>bad state</strong>.
+You will not know the true state when making your decisions.
+</p>
+
+<hr>
+
+<h3>Signals</h3>
+
+<p>
+At the beginning of each round, you receive a <strong>public signal</strong>.
+The public signal can be <strong>Good</strong> or <strong>Bad</strong>.
+</p>
+
+<p>
+The public signal is correct with probability <strong>60%</strong>.
+This means that if the true state is good, the signal says “Good” 60% of the time.
+If the true state is bad, the signal says “Bad” 60% of the time.
+</p>
+
+<p>
+After seeing the public signal, you can buy <strong>additional private information</strong> for
+<strong>15 tokens</strong>.
+If you buy it, you receive a private signal, also Good or Bad.
+</p>
+
+<p>
+The private signal is correct with probability <strong>80%</strong>.
+</p>
+
+<hr>
+
+<h3>Investment</h3>
+
+<ul>
+    <li>If you do not buy private information, you can invest up to <strong>100 tokens</strong>.</li>
+    <li>If you buy private information, you can invest up to <strong>85 tokens</strong>.</li>
+    <li>Tokens not invested are kept.</li>
+</ul>
+
+<hr>
+
+<h3>Payoff tables</h3>
+
+<p>
+The payoff structure may change during the experiment.
+When this happens, a new payoff table will be shown.
+</p>
+
+<p>
+Please read the payoff table carefully before making your decision in each round.
+</p>
+
+<hr>
+
+<h3>Project survival and payments</h3>
+
+<p>
+Returns are paid over four periods. However, the project may stop before the end.
+</p>
+
+<p>
+In each round, you will see a continuation probability.
+This is the probability that the project survives from one period to the next.
+</p>
+
+<p>
+For example, if the continuation probability is 86%, then after each period there is an 86% chance that the project continues to the next period, and a 14% chance that it stops.
+</p>
+
+<p>
+If the project stops after period 2, you receive the payments from periods 1 and 2, but you receive nothing from periods 3 and 4.
+</p>
+
+{{ next_button }}
+
+{{ endblock }}

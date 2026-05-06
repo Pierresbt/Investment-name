@@ -1,0 +1,40 @@
+{{ block title }}
+Final results
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+<p>The experiment is now finished.</p>
+
+<p>Three rounds were randomly selected for payment:</p>
+
+<h3>{{ paid_rounds_text }}</h3>
+
+<hr>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Paid round</th>
+        <th>Earnings in tokens</th>
+    </tr>
+    {% for p in paid_players %}
+    <tr>
+        <td>Round {{ p.round_number }}</td>
+        <td>{{ p.round_tokens }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>Your total earnings from the selected rounds are:</p>
+
+<h3>{{ total_tokens }} tokens</h3>
+
+<p>This corresponds to a bonus of:</p>
+
+<h3>{{ bonus_euros }} €</h3>
+
+<p>Thank you for participating.</p>
+
+{{ endblock }}

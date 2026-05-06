@@ -1,0 +1,77 @@
+{{ block title }}
+Buy additional information?
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+<h4>Reminder</h4>
+
+<ul>
+    <li>Payoff case: <strong>{{ case }}</strong></li>
+    <li>Public signal: <strong>{{ public_signal }}</strong></li>
+    <li>Continuation probability: <strong>{{ delta_percent }}%</strong></li>
+</ul>
+
+<hr>
+
+<h4>Payoff table</h4>
+
+<table class="table table-bordered">
+    <tr>
+        <th></th>
+        <th>Period 1</th>
+        <th>Period 2</th>
+        <th>Period 3</th>
+        <th>Period 4</th>
+    </tr>
+
+    <tr>
+        <td>Chance of reaching this period</td>
+        {% for p in survival_probs %}
+            <td>{{ p }}%</td>
+        {% endfor %}
+    </tr>
+
+    <tr>
+        <td>Good state</td>
+        {% for x in payoff_H %}
+            <td>{{ x }}</td>
+        {% endfor %}
+    </tr>
+
+    <tr>
+        <td>Bad state</td>
+        {% for x in payoff_L %}
+            <td>{{ x }}</td>
+        {% endfor %}
+    </tr>
+</table>
+
+<p>
+If the project stops, you keep the payments from previous periods, but you receive no payment from later periods.
+</p>
+
+<hr>
+
+<p>
+You can now decide whether to buy additional private information.
+</p>
+
+<p>
+If you buy additional information, you pay <strong>15 tokens</strong> and receive a private signal.
+The private signal can be <strong>Good</strong> or <strong>Bad</strong>.
+It is correct with probability <strong>80%</strong>.
+</p>
+
+<ul>
+    <li>If you buy it, you can invest up to <strong>85 tokens</strong>.</li>
+    <li>If you do not buy it, you can invest up to <strong>100 tokens</strong>.</li>
+</ul>
+
+{{ formfields }}
+
+{{ next_button }}
+
+{{ endblock }}

@@ -1,0 +1,99 @@
+{{ block title }}
+Risk preference task
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+<p>
+Before the investment game starts, you will complete a short risk preference task.
+</p>
+
+<p>
+In each row, you must choose between <strong>Option A</strong> and <strong>Option B</strong>.
+Each option is a lottery: it gives one payoff with some probability and another payoff with the remaining probability.
+</p>
+
+<p>
+<strong>Option A</strong> is safer: the two possible payoffs are closer to each other.
+<strong>Option B</strong> is riskier: it can give a higher payoff, but it can also give a much lower payoff.
+</p>
+
+<p>
+There is no right or wrong answer. Please choose the option you personally prefer in each row.
+</p>
+
+<table class="table table-bordered">
+    <tr>
+        <th>Decision</th>
+        <th>Option A</th>
+        <th>Option B</th>
+        <th>Your choice</th>
+    </tr>
+
+    <tr>
+        <td>1</td>
+        <td>10% chance of 200 tokens, 90% chance of 160 tokens</td>
+        <td>10% chance of 385 tokens, 90% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_1 }}</td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>20% chance of 200 tokens, 80% chance of 160 tokens</td>
+        <td>20% chance of 385 tokens, 80% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_2 }}</td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>30% chance of 200 tokens, 70% chance of 160 tokens</td>
+        <td>30% chance of 385 tokens, 70% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_3 }}</td>
+    </tr>
+    <tr>
+        <td>4</td>
+        <td>40% chance of 200 tokens, 60% chance of 160 tokens</td>
+        <td>40% chance of 385 tokens, 60% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_4 }}</td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td>50% chance of 200 tokens, 50% chance of 160 tokens</td>
+        <td>50% chance of 385 tokens, 50% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_5 }}</td>
+    </tr>
+    <tr>
+        <td>6</td>
+        <td>60% chance of 200 tokens, 40% chance of 160 tokens</td>
+        <td>60% chance of 385 tokens, 40% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_6 }}</td>
+    </tr>
+    <tr>
+        <td>7</td>
+        <td>70% chance of 200 tokens, 30% chance of 160 tokens</td>
+        <td>70% chance of 385 tokens, 30% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_7 }}</td>
+    </tr>
+    <tr>
+        <td>8</td>
+        <td>80% chance of 200 tokens, 20% chance of 160 tokens</td>
+        <td>80% chance of 385 tokens, 20% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_8 }}</td>
+    </tr>
+    <tr>
+        <td>9</td>
+        <td>90% chance of 200 tokens, 10% chance of 160 tokens</td>
+        <td>90% chance of 385 tokens, 10% chance of 10 tokens</td>
+        <td>{{ form.holt_laury_choice_9 }}</td>
+    </tr>
+    <tr>
+        <td>10</td>
+        <td>100% chance of 200 tokens</td>
+        <td>100% chance of 385 tokens</td>
+        <td>{{ form.holt_laury_choice_10 }}</td>
+    </tr>
+</table>
+
+{{ next_button }}
+
+{{ endblock }}

@@ -1,0 +1,70 @@
+{{ block title }}
+Payoff case
+{{ endblock }}
+
+{{ block content }}
+
+<link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
+
+{% if player.round_number == 1 %}
+<p>You are starting the first round of the experiment.</p>
+<p>This is the first payoff case you will see.</p>
+{% else %}
+<p>You are starting a new round.</p>
+<p>
+The payoff case may change across rounds. Please look carefully at the payoff table before making your decision.
+</p>
+{% endif %}
+
+<p>
+In this round, you are making an investment decision under:
+</p>
+
+<h3>Case {{ case }}</h3>
+
+<hr>
+
+<h4>Payoff table</h4>
+
+<table class="table table-bordered">
+    <tr>
+        <th></th>
+        <th>Period 1</th>
+        <th>Period 2</th>
+        <th>Period 3</th>
+        <th>Period 4</th>
+    </tr>
+
+    <tr>
+        <td>Chance of reaching this period</td>
+        {% for p in survival_probs %}
+            <td>{{ p }}%</td>
+        {% endfor %}
+    </tr>
+
+    <tr>
+        <td>Good state</td>
+        {% for x in payoff_H %}
+            <td>{{ x }}</td>
+        {% endfor %}
+    </tr>
+
+    <tr>
+        <td>Bad state</td>
+        {% for x in payoff_L %}
+            <td>{{ x }}</td>
+        {% endfor %}
+    </tr>
+</table>
+
+<p>
+Each number tells you how many tokens you receive per token invested, if the project is still active in that period.
+</p>
+
+<p>
+If the project stops, you keep the payments from previous periods, but you receive no payment from later periods.
+</p>
+
+{{ next_button }}
+
+{{ endblock }}
