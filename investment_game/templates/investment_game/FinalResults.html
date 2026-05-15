@@ -6,9 +6,13 @@ Final results
 
 <link rel="stylesheet" href="{{ static 'investment_game/style.css' }}">
 
-<p>The experiment is now finished.</p>
+<p>
+The experiment is now finished.
+</p>
 
-<p>Three rounds were randomly selected for payment:</p>
+<p>
+Three rounds from the investment game were randomly selected for payment:
+</p>
 
 <h3>{{ paid_rounds_text }}</h3>
 
@@ -19,6 +23,7 @@ Final results
         <th>Paid round</th>
         <th>Earnings in tokens</th>
     </tr>
+
     {% for p in paid_players %}
     <tr>
         <td>Round {{ p.round_number }}</td>
@@ -27,14 +32,52 @@ Final results
     {% endfor %}
 </table>
 
-<p>Your total earnings from the selected rounds are:</p>
+<p>
+Your earnings from the investment task are the average of these three selected rounds:
+</p>
+
+<h3>{{ investment_tokens }} tokens</h3>
+
+<hr>
+
+<p>
+One decision from the risk preference task was also randomly selected for payment.
+</p>
+
+<p>
+Selected risk preference decision:
+</p>
+
+<h3>Decision {{ holt_laury_paid_row }}</h3>
+
+<p>
+Your selected choice was:
+</p>
+
+<h3>Option {{ holt_laury_selected_choice }}</h3>
+
+<p>
+Your earnings from the risk preference task are:
+</p>
+
+<h3>{{ holt_laury_tokens }} tokens</h3>
+
+<hr>
+
+<p>
+Your total earnings are:
+</p>
 
 <h3>{{ total_tokens }} tokens</h3>
 
-<p>This corresponds to a bonus of:</p>
+<p>
+This corresponds to a bonus of:
+</p>
 
 <h3>{{ bonus_euros }} €</h3>
 
-<p>Thank you for participating.</p>
+<p>
+Thank you for participating.
+</p>
 
 {{ endblock }}

@@ -29,8 +29,16 @@ class C(BaseConstants):
     DELTA_MAX = 0.90
 
     TOKENS_PER_EURO = 100
-    CASES = [1, 2, 3, 4, 5]
+
+    # Only cases 3, 4, and 5 are now used.
+    CASES = [3, 4, 5]
     ROUNDS_PER_BLOCK = 7
+
+    # Reduced Holt-Laury payoffs.
+    HL_A_HIGH = 120
+    HL_A_LOW = 90
+    HL_B_HIGH = 220
+    HL_B_LOW = 10
 
 
 class Subsession(BaseSubsession):
@@ -99,6 +107,9 @@ class Player(BasePlayer):
     holt_laury_choice_10 = models.StringField(choices=[['A', 'Option A'], ['B', 'Option B']], widget=widgets.RadioSelect)
 
     risk_aversion_level = models.IntegerField(blank=True)
+
+    holt_laury_paid_row = models.IntegerField(blank=True)
+    holt_laury_payoff = models.FloatField(blank=True)
 
 
 PAYOFFS = {
@@ -295,6 +306,28 @@ class HoltLaury(Page):
         player.risk_aversion_level = risk_level
         player.participant.risk_aversion_level = risk_level
 
+        paid_row = random.randint(1, 10)
+        player.holt_laury_paid_row = paid_row
+        player.participant.holt_laury_paid_row = paid_row
+
+        selected_choice = choices[paid_row - 1]
+        high_probability = paid_row / 10
+
+        if selected_choice == 'A':
+            if random.random() < high_probability:
+                payoff = C.HL_A_HIGH
+            else:
+                payoff = C.HL_A_LOW
+        else:
+            if random.random() < high_probability:
+                payoff = C.HL_B_HIGH
+            else:
+                payoff = C.HL_B_LOW
+
+        player.holt_laury_payoff = payoff
+        player.participant.holt_laury_payoff = payoff
+        player.participant.holt_laury_selected_choice = selected_choice
+
 
 class StartGame(Page):
     @staticmethod
@@ -369,6 +402,7 @@ class BuyInfo(Page):
             'survival_probs': survival_probabilities(player),
         }
 
+
 class PrivateSignal(Page):
     @staticmethod
     def is_displayed(player: Player):
@@ -388,7 +422,6 @@ class PrivateSignal(Page):
 
 class Investment(Page):
     form_model = 'player'
-
     form_fields = [
         'investment',
         'investment_touched',
@@ -396,7 +429,6 @@ class Investment(Page):
 
     @staticmethod
     def error_message(player: Player, values):
-
         if values['investment_touched'] == 0:
             return "Please move the investment slider."
 
@@ -428,7 +460,8 @@ class Investment(Page):
 
         calculate_survival_periods(player)
         calculate_payoff(player)
-        
+
+
 class Results(Page):
     @staticmethod
     def vars_for_template(player: Player):
@@ -462,7 +495,13 @@ class FinalResults(Page):
         paid_rounds = sorted(paid_rounds)
         paid_players = [p for p in all_players if p.round_number in paid_rounds]
 
-        total_tokens = sum(p.round_tokens for p in paid_players)
+        investment_tokens = sum(p.round_tokens for p in paid_players) / len(paid_players)
+
+        holt_laury_tokens = participant.holt_laury_payoff
+        holt_laury_paid_row = participant.holt_laury_paid_row
+        holt_laury_selected_choice = participant.holt_laury_selected_choice
+
+        total_tokens = investment_tokens + holt_laury_tokens
         bonus_euros = total_tokens / C.TOKENS_PER_EURO
 
         paid_rounds_text = " and ".join([f"Round {r}" for r in paid_rounds])
@@ -473,6 +512,10 @@ class FinalResults(Page):
             'paid_rounds': paid_rounds,
             'paid_rounds_text': paid_rounds_text,
             'paid_players': paid_players,
+            'investment_tokens': round(investment_tokens, 2),
+            'holt_laury_tokens': round(holt_laury_tokens, 2),
+            'holt_laury_paid_row': holt_laury_paid_row,
+            'holt_laury_selected_choice': holt_laury_selected_choice,
             'total_tokens': round(total_tokens, 2),
             'bonus_euros': round(bonus_euros, 2),
         }
@@ -520,6 +563,9 @@ def custom_export(players):
         'kappa_scaled',
         'belief_uncertainty',
         'risk_aversion_level',
+        'holt_laury_paid_row',
+        'holt_laury_selected_choice',
+        'holt_laury_payoff',
         'buy_info',
         'buy_info_num',
         'investment',
@@ -596,6 +642,10 @@ def custom_export(players):
             else None
         )
 
+        holt_laury_paid_row = getattr(p.participant, 'holt_laury_paid_row', None)
+        holt_laury_selected_choice = getattr(p.participant, 'holt_laury_selected_choice', None)
+        holt_laury_payoff = getattr(p.participant, 'holt_laury_payoff', None)
+
         yield [
             p.participant.code,
             p.round_number,
@@ -620,6 +670,9 @@ def custom_export(players):
             round(kappa_scaled, 4) if kappa_scaled is not None else None,
             round(belief_uncertainty, 4) if belief_uncertainty is not None else None,
             p.field_maybe_none('risk_aversion_level'),
+            holt_laury_paid_row,
+            holt_laury_selected_choice,
+            holt_laury_payoff,
             buy_info,
             1 if buy_info is True else 0 if buy_info is False else None,
             investment,
