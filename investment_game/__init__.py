@@ -30,7 +30,7 @@ class C(BaseConstants):
 
     TOKENS_PER_EURO = 100
 
-    # Only cases 3, 4, and 5 are now used.
+    # Only cases 3, 4, and 5 are used.
     CASES = [3, 4, 5]
     ROUNDS_PER_BLOCK = 7
 
@@ -107,9 +107,6 @@ class Player(BasePlayer):
     holt_laury_choice_10 = models.StringField(choices=[['A', 'Option A'], ['B', 'Option B']], widget=widgets.RadioSelect)
 
     risk_aversion_level = models.IntegerField(blank=True)
-
-    holt_laury_paid_row = models.IntegerField(blank=True)
-    holt_laury_payoff = models.FloatField(blank=True)
 
 
 PAYOFFS = {
@@ -307,9 +304,6 @@ class HoltLaury(Page):
         player.participant.risk_aversion_level = risk_level
 
         paid_row = random.randint(1, 10)
-        player.holt_laury_paid_row = paid_row
-        player.participant.holt_laury_paid_row = paid_row
-
         selected_choice = choices[paid_row - 1]
         high_probability = paid_row / 10
 
@@ -324,9 +318,10 @@ class HoltLaury(Page):
             else:
                 payoff = C.HL_B_LOW
 
-        player.holt_laury_payoff = payoff
-        player.participant.holt_laury_payoff = payoff
+        # Stored only at participant level, so no database migration/reset is needed.
+        player.participant.holt_laury_paid_row = paid_row
         player.participant.holt_laury_selected_choice = selected_choice
+        player.participant.holt_laury_payoff = payoff
 
 
 class StartGame(Page):
@@ -422,6 +417,7 @@ class PrivateSignal(Page):
 
 class Investment(Page):
     form_model = 'player'
+
     form_fields = [
         'investment',
         'investment_touched',
@@ -497,9 +493,9 @@ class FinalResults(Page):
 
         investment_tokens = sum(p.round_tokens for p in paid_players) / len(paid_players)
 
-        holt_laury_tokens = participant.holt_laury_payoff
-        holt_laury_paid_row = participant.holt_laury_paid_row
-        holt_laury_selected_choice = participant.holt_laury_selected_choice
+        holt_laury_tokens = getattr(participant, 'holt_laury_payoff', 0)
+        holt_laury_paid_row = getattr(participant, 'holt_laury_paid_row', None)
+        holt_laury_selected_choice = getattr(participant, 'holt_laury_selected_choice', None)
 
         total_tokens = investment_tokens + holt_laury_tokens
         bonus_euros = total_tokens / C.TOKENS_PER_EURO
