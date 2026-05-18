@@ -7,6 +7,13 @@ Created on Wed Apr 22 17:01:51 2026
 """
 
 
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr 22 17:01:51 2026
+
+@author: pierr
+"""
+
 from otree.api import *
 import random
 
@@ -318,10 +325,10 @@ class HoltLaury(Page):
             else:
                 payoff = C.HL_B_LOW
 
-        # Stored only at participant level, so no database migration/reset is needed.
-        player.participant.holt_laury_paid_row = paid_row
-        player.participant.holt_laury_selected_choice = selected_choice
-        player.participant.holt_laury_payoff = payoff
+        # Use participant.vars so we do NOT create new database columns.
+        player.participant.vars['holt_laury_paid_row'] = paid_row
+        player.participant.vars['holt_laury_selected_choice'] = selected_choice
+        player.participant.vars['holt_laury_payoff'] = payoff
 
 
 class StartGame(Page):
@@ -493,9 +500,9 @@ class FinalResults(Page):
 
         investment_tokens = sum(p.round_tokens for p in paid_players) / len(paid_players)
 
-        holt_laury_tokens = getattr(participant, 'holt_laury_payoff', 0)
-        holt_laury_paid_row = getattr(participant, 'holt_laury_paid_row', None)
-        holt_laury_selected_choice = getattr(participant, 'holt_laury_selected_choice', None)
+        holt_laury_tokens = participant.vars.get('holt_laury_payoff', 0)
+        holt_laury_paid_row = participant.vars.get('holt_laury_paid_row', None)
+        holt_laury_selected_choice = participant.vars.get('holt_laury_selected_choice', None)
 
         total_tokens = investment_tokens + holt_laury_tokens
         bonus_euros = total_tokens / C.TOKENS_PER_EURO
@@ -638,9 +645,9 @@ def custom_export(players):
             else None
         )
 
-        holt_laury_paid_row = getattr(p.participant, 'holt_laury_paid_row', None)
-        holt_laury_selected_choice = getattr(p.participant, 'holt_laury_selected_choice', None)
-        holt_laury_payoff = getattr(p.participant, 'holt_laury_payoff', None)
+        holt_laury_paid_row = p.participant.vars.get('holt_laury_paid_row', None)
+        holt_laury_selected_choice = p.participant.vars.get('holt_laury_selected_choice', None)
+        holt_laury_payoff = p.participant.vars.get('holt_laury_payoff', None)
 
         yield [
             p.participant.code,
