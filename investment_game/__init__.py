@@ -7,15 +7,9 @@ Created on Wed Apr 22 17:01:51 2026
 """
 
 
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Apr 22 17:01:51 2026
-
-@author: pierr
-"""
-
 from otree.api import *
 import random
+from datetime import datetime
 
 
 TEST_MODE = False
@@ -37,11 +31,9 @@ class C(BaseConstants):
 
     TOKENS_PER_EURO = 100
 
-    # Only cases 3, 4, and 5 are used.
     CASES = [3, 4, 5]
     ROUNDS_PER_BLOCK = 7
 
-    # Reduced Holt-Laury payoffs.
     HL_A_HIGH = 120
     HL_A_LOW = 90
     HL_B_HIGH = 220
@@ -144,6 +136,10 @@ def get_block_number(round_number):
     return ((round_number - 1) // C.ROUNDS_PER_BLOCK) + 1
 
 
+def get_round_in_block(round_number):
+    return ((round_number - 1) % C.ROUNDS_PER_BLOCK) + 1
+
+
 def get_payoff_stream(player: Player, state):
     return PAYOFFS[player.case][player.environment][state]
 
@@ -188,28 +184,32 @@ def creating_session(subsession: Subsession):
         participant = player.participant
 
         if subsession.round_number == 1:
-            participant.environment = random.choice(['F', 'B'])
-
+            environment = random.choice(['F', 'B'])
             selected_cases = random.sample(C.CASES, 3)
-            participant.case_block_1 = selected_cases[0]
-            participant.case_block_2 = selected_cases[1]
-            participant.case_block_3 = selected_cases[2]
+            paid_rounds = random.sample(range(1, C.NUM_ROUNDS + 1), 3)
 
-            participant.paid_rounds = random.sample(
-                range(1, C.NUM_ROUNDS + 1),
-                3
-            )
+            participant.vars['environment'] = environment
 
-        player.environment = participant.environment
+            participant.vars['case_block_1'] = selected_cases[0]
+            participant.vars['case_block_2'] = selected_cases[1]
+            participant.vars['case_block_3'] = selected_cases[2]
+
+            participant.vars['case_order_1'] = selected_cases[0]
+            participant.vars['case_order_2'] = selected_cases[1]
+            participant.vars['case_order_3'] = selected_cases[2]
+
+            participant.vars['paid_rounds'] = paid_rounds
+
+        player.environment = participant.vars['environment']
 
         player.block_number = get_block_number(subsession.round_number)
 
         if player.block_number == 1:
-            player.case = participant.case_block_1
+            player.case = participant.vars['case_block_1']
         elif player.block_number == 2:
-            player.case = participant.case_block_2
+            player.case = participant.vars['case_block_2']
         else:
-            player.case = participant.case_block_3
+            player.case = participant.vars['case_block_3']
 
         player.delta = round(random.uniform(C.DELTA_MIN, C.DELTA_MAX), 2)
 
@@ -308,24 +308,17 @@ class HoltLaury(Page):
 
         risk_level = choices.count('A')
         player.risk_aversion_level = risk_level
-        player.participant.risk_aversion_level = risk_level
+        player.participant.vars['risk_aversion_level'] = risk_level
 
         paid_row = random.randint(1, 10)
         selected_choice = choices[paid_row - 1]
         high_probability = paid_row / 10
 
         if selected_choice == 'A':
-            if random.random() < high_probability:
-                payoff = C.HL_A_HIGH
-            else:
-                payoff = C.HL_A_LOW
+            payoff = C.HL_A_HIGH if random.random() < high_probability else C.HL_A_LOW
         else:
-            if random.random() < high_probability:
-                payoff = C.HL_B_HIGH
-            else:
-                payoff = C.HL_B_LOW
+            payoff = C.HL_B_HIGH if random.random() < high_probability else C.HL_B_LOW
 
-        # Use participant.vars so we do NOT create new database columns.
         player.participant.vars['holt_laury_paid_row'] = paid_row
         player.participant.vars['holt_laury_selected_choice'] = selected_choice
         player.participant.vars['holt_laury_payoff'] = payoff
@@ -349,6 +342,7 @@ class TreatmentInfo(Page):
         return {
             'case': player.case,
             'block_number': player.block_number,
+            'round_in_block': get_round_in_block(player.round_number),
             'payoff_H': payoff_table['H'],
             'payoff_L': payoff_table['L'],
             'survival_probs': survival_probabilities(player),
@@ -363,6 +357,8 @@ class PublicSignal(Page):
             'total_rounds': C.NUM_ROUNDS,
             'public_signal': player.public_signal,
             'case': player.case,
+            'block_number': player.block_number,
+            'round_in_block': get_round_in_block(player.round_number),
         }
 
 
@@ -399,6 +395,8 @@ class BuyInfo(Page):
             'public_signal': player.public_signal,
             'delta_percent': int(player.delta * 100),
             'case': player.case,
+            'block_number': player.block_number,
+            'round_in_block': get_round_in_block(player.round_number),
             'payoff_H': payoff_table['H'],
             'payoff_L': payoff_table['L'],
             'survival_probs': survival_probabilities(player),
@@ -424,7 +422,6 @@ class PrivateSignal(Page):
 
 class Investment(Page):
     form_model = 'player'
-
     form_fields = [
         'investment',
         'investment_touched',
@@ -452,6 +449,8 @@ class Investment(Page):
             'private_signal': player.field_maybe_none('private_signal'),
             'delta_percent': int(player.delta * 100),
             'case': player.case,
+            'block_number': player.block_number,
+            'round_in_block': get_round_in_block(player.round_number),
             'payoff_H': payoff_table['H'],
             'payoff_L': payoff_table['L'],
             'survival_probs': survival_probabilities(player),
@@ -459,7 +458,7 @@ class Investment(Page):
 
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
-        player.risk_aversion_level = player.participant.risk_aversion_level
+        player.risk_aversion_level = player.participant.vars.get('risk_aversion_level', None)
 
         calculate_survival_periods(player)
         calculate_payoff(player)
@@ -487,13 +486,10 @@ class FinalResults(Page):
         participant = player.participant
         all_players = player.in_all_rounds()
 
-        try:
-            paid_rounds = participant.paid_rounds
-        except AttributeError:
-            paid_rounds = random.sample(
-                range(1, C.NUM_ROUNDS + 1),
-                3
-            )
+        paid_rounds = participant.vars.get(
+            'paid_rounds',
+            random.sample(range(1, C.NUM_ROUNDS + 1), 3)
+        )
 
         paid_rounds = sorted(paid_rounds)
         paid_players = [p for p in all_players if p.round_number in paid_rounds]
@@ -506,6 +502,11 @@ class FinalResults(Page):
 
         total_tokens = investment_tokens + holt_laury_tokens
         bonus_euros = total_tokens / C.TOKENS_PER_EURO
+
+        participant.vars['investment_payment_average'] = investment_tokens
+        participant.vars['holt_laury_payment'] = holt_laury_tokens
+        participant.vars['total_payment_tokens'] = total_tokens
+        participant.vars['total_payment_euros'] = bonus_euros
 
         paid_rounds_text = " and ".join([f"Round {r}" for r in paid_rounds])
 
@@ -543,13 +544,25 @@ page_sequence = [
 
 def custom_export(players):
     yield [
+        # Identification
         'participant_code',
+        'session_code',
         'round_number',
+        'round_in_block',
+        'completed_participant',
+
+        # Treatment structure
         'environment',
         'env_F',
         'env_B',
         'block_number',
+        'project_type_seen_by_subject',
         'case',
+        'case_order_1',
+        'case_order_2',
+        'case_order_3',
+
+        # State, signals, and timing
         'delta',
         'breakage_probability',
         'state',
@@ -558,6 +571,8 @@ def custom_export(players):
         'public_good',
         'private_signal',
         'private_good',
+
+        # Beliefs and metacognition
         'belief_good',
         'confidence_tau',
         'kappa',
@@ -565,31 +580,58 @@ def custom_export(players):
         'tau_scaled',
         'kappa_scaled',
         'belief_uncertainty',
+        'posterior_public',
+        'perceived_qy',
+        'posterior_private_v6',
+
+        # Risk task
         'risk_aversion_level',
+        'risk_aversion_scaled',
         'holt_laury_paid_row',
         'holt_laury_selected_choice',
         'holt_laury_payoff',
+
+        # Information and investment choices
         'buy_info',
         'buy_info_num',
         'investment',
         'max_investment',
         'investment_share',
+
+        # Payoff environment variables
         'R_H',
         'R_L',
         'payoff_spread',
         'payoff_spread_squared',
         'expected_return_public',
         'lambda_term_proxy',
+
+        # Realized outcome
         'survival_periods',
         'round_tokens',
         'is_paid_round',
+
+        # Final payment variables
+        'investment_payment_average',
+        'holt_laury_payment_final',
+        'total_payment_tokens',
+        'total_payment_euros',
+
+        # Export metadata
+        'export_timestamp',
     ]
 
+    export_timestamp = datetime.now().isoformat()
+
     for p in players:
-        try:
-            paid_rounds = p.participant.paid_rounds
-        except AttributeError:
-            paid_rounds = []
+        participant = p.participant
+
+        paid_rounds = participant.vars.get('paid_rounds', [])
+
+        all_rounds = p.in_all_rounds()
+        completed_participant = int(
+            sum(r.field_maybe_none('investment') is not None for r in all_rounds) == C.NUM_ROUNDS
+        )
 
         environment = p.field_maybe_none('environment')
         state = p.field_maybe_none('state')
@@ -612,6 +654,36 @@ def custom_export(players):
             if belief_scaled is not None
             else None
         )
+
+        posterior_public = None
+        perceived_qy = None
+        posterior_private_v6 = None
+
+        if public_signal == 'Good':
+            posterior_public = C.PUBLIC_SIGNAL_PRECISION
+        elif public_signal == 'Bad':
+            posterior_public = 1 - C.PUBLIC_SIGNAL_PRECISION
+
+        if tau_scaled is not None and kappa_scaled is not None:
+            perceived_qy = 0.5 + (1 - kappa_scaled * tau_scaled) * (
+                C.PRIVATE_SIGNAL_PRECISION - 0.5
+            )
+
+        if posterior_public is not None and perceived_qy is not None and private_signal is not None:
+            if private_signal == 'Good':
+                posterior_private_v6 = (
+                    perceived_qy * posterior_public
+                ) / (
+                    perceived_qy * posterior_public
+                    + (1 - perceived_qy) * (1 - posterior_public)
+                )
+            elif private_signal == 'Bad':
+                posterior_private_v6 = (
+                    (1 - perceived_qy) * posterior_public
+                ) / (
+                    (1 - perceived_qy) * posterior_public
+                    + perceived_qy * (1 - posterior_public)
+                )
 
         if delta is not None:
             r_h = discounted_return(p, 'H')
@@ -645,18 +717,42 @@ def custom_export(players):
             else None
         )
 
-        holt_laury_paid_row = p.participant.vars.get('holt_laury_paid_row', None)
-        holt_laury_selected_choice = p.participant.vars.get('holt_laury_selected_choice', None)
-        holt_laury_payoff = p.participant.vars.get('holt_laury_payoff', None)
+        risk_aversion_level = p.field_maybe_none('risk_aversion_level')
+        risk_aversion_scaled = (
+            risk_aversion_level / 10
+            if risk_aversion_level is not None
+            else None
+        )
+
+        holt_laury_paid_row = participant.vars.get('holt_laury_paid_row', None)
+        holt_laury_selected_choice = participant.vars.get('holt_laury_selected_choice', None)
+        holt_laury_payoff = participant.vars.get('holt_laury_payoff', None)
+
+        investment_payment_average = participant.vars.get('investment_payment_average', None)
+        holt_laury_payment_final = participant.vars.get('holt_laury_payment', None)
+        total_payment_tokens = participant.vars.get('total_payment_tokens', None)
+        total_payment_euros = participant.vars.get('total_payment_euros', None)
 
         yield [
-            p.participant.code,
+            # Identification
+            participant.code,
+            p.session.code,
             p.round_number,
+            get_round_in_block(p.round_number),
+            completed_participant,
+
+            # Treatment structure
             environment,
             1 if environment == 'F' else 0,
             1 if environment == 'B' else 0,
             p.field_maybe_none('block_number'),
+            p.field_maybe_none('block_number'),
             p.field_maybe_none('case'),
+            participant.vars.get('case_order_1', None),
+            participant.vars.get('case_order_2', None),
+            participant.vars.get('case_order_3', None),
+
+            # State, signals, and timing
             delta,
             round(1 - delta, 2) if delta is not None else None,
             state,
@@ -665,6 +761,8 @@ def custom_export(players):
             1 if public_signal == 'Good' else 0,
             private_signal,
             1 if private_signal == 'Good' else 0 if private_signal == 'Bad' else None,
+
+            # Beliefs and metacognition
             belief_good,
             confidence_tau,
             kappa,
@@ -672,22 +770,43 @@ def custom_export(players):
             round(tau_scaled, 4) if tau_scaled is not None else None,
             round(kappa_scaled, 4) if kappa_scaled is not None else None,
             round(belief_uncertainty, 4) if belief_uncertainty is not None else None,
-            p.field_maybe_none('risk_aversion_level'),
+            round(posterior_public, 4) if posterior_public is not None else None,
+            round(perceived_qy, 4) if perceived_qy is not None else None,
+            round(posterior_private_v6, 4) if posterior_private_v6 is not None else None,
+
+            # Risk task
+            risk_aversion_level,
+            round(risk_aversion_scaled, 4) if risk_aversion_scaled is not None else None,
             holt_laury_paid_row,
             holt_laury_selected_choice,
             holt_laury_payoff,
+
+            # Information and investment choices
             buy_info,
             1 if buy_info is True else 0 if buy_info is False else None,
             investment,
             max_investment,
             round(investment_share, 4) if investment_share is not None else None,
+
+            # Payoff environment variables
             round(r_h, 4) if r_h is not None else None,
             round(r_l, 4) if r_l is not None else None,
             round(spread, 4) if spread is not None else None,
             round(spread_squared, 4) if spread_squared is not None else None,
             round(expected_public, 4) if expected_public is not None else None,
             round(lambda_term_proxy, 4) if lambda_term_proxy is not None else None,
+
+            # Realized outcome
             p.field_maybe_none('survival_periods'),
             p.field_maybe_none('round_tokens'),
             1 if p.round_number in paid_rounds else 0,
+
+            # Final payment variables
+            round(investment_payment_average, 2) if investment_payment_average is not None else None,
+            round(holt_laury_payment_final, 2) if holt_laury_payment_final is not None else None,
+            round(total_payment_tokens, 2) if total_payment_tokens is not None else None,
+            round(total_payment_euros, 2) if total_payment_euros is not None else None,
+
+            # Export metadata
+            export_timestamp,
         ]
