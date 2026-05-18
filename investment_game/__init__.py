@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 Created on Wed Apr 22 17:01:51 2026
@@ -259,6 +258,15 @@ class Welcome(Page):
     def is_displayed(player: Player):
         return player.round_number == 1
 
+    @staticmethod
+    def before_next_page(player: Player, timeout_happened):
+        participant = player.participant
+
+        if 'experiment_start_timestamp' not in participant.vars:
+            now = datetime.now()
+            participant.vars['experiment_start_timestamp'] = now.timestamp()
+            participant.vars['experiment_start_datetime'] = now.isoformat()
+
 
 class Instructions(Page):
     @staticmethod
@@ -508,6 +516,19 @@ class FinalResults(Page):
         participant.vars['total_payment_tokens'] = total_tokens
         participant.vars['total_payment_euros'] = bonus_euros
 
+        if 'experiment_end_timestamp' not in participant.vars:
+            now = datetime.now()
+            participant.vars['experiment_end_timestamp'] = now.timestamp()
+            participant.vars['experiment_end_datetime'] = now.isoformat()
+
+            start_timestamp = participant.vars.get('experiment_start_timestamp', None)
+            if start_timestamp is not None:
+                participant.vars['total_experiment_seconds'] = (
+                    participant.vars['experiment_end_timestamp'] - start_timestamp
+                )
+            else:
+                participant.vars['total_experiment_seconds'] = None
+
         paid_rounds_text = " and ".join([f"Round {r}" for r in paid_rounds])
 
         player.payoff = total_tokens
@@ -617,11 +638,12 @@ def custom_export(players):
         'total_payment_tokens',
         'total_payment_euros',
 
-        # Export metadata
-        'export_timestamp',
+        # Completion timing
+        'experiment_start_datetime',
+        'experiment_end_datetime',
+        'total_experiment_seconds',
+        'total_experiment_minutes',
     ]
-
-    export_timestamp = datetime.now().isoformat()
 
     for p in players:
         participant = p.participant
@@ -733,6 +755,16 @@ def custom_export(players):
         total_payment_tokens = participant.vars.get('total_payment_tokens', None)
         total_payment_euros = participant.vars.get('total_payment_euros', None)
 
+        experiment_start_datetime = participant.vars.get('experiment_start_datetime', None)
+        experiment_end_datetime = participant.vars.get('experiment_end_datetime', None)
+        total_experiment_seconds = participant.vars.get('total_experiment_seconds', None)
+
+        total_experiment_minutes = (
+            total_experiment_seconds / 60
+            if total_experiment_seconds is not None
+            else None
+        )
+
         yield [
             # Identification
             participant.code,
@@ -807,6 +839,9 @@ def custom_export(players):
             round(total_payment_tokens, 2) if total_payment_tokens is not None else None,
             round(total_payment_euros, 2) if total_payment_euros is not None else None,
 
-            # Export metadata
-            export_timestamp,
+            # Completion timing
+            experiment_start_datetime,
+            experiment_end_datetime,
+            round(total_experiment_seconds, 2) if total_experiment_seconds is not None else None,
+            round(total_experiment_minutes, 2) if total_experiment_minutes is not None else None,
         ]
