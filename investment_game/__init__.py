@@ -33,10 +33,11 @@ class C(BaseConstants):
     CASES = [3, 4, 5]
     ROUNDS_PER_BLOCK = 7
 
-    HL_A_HIGH = 120
-    HL_A_LOW = 90
-    HL_B_HIGH = 220
-    HL_B_LOW = 10
+    # Holt-Laury values: half of the standard 200/160 and 385/10 values
+    HL_A_HIGH = 100
+    HL_A_LOW = 80
+    HL_B_HIGH = 190
+    HL_B_LOW = 5
 
 
 class Subsession(BaseSubsession):
