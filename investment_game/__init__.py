@@ -179,13 +179,21 @@ def survival_probabilities(player: Player):
         round((player.delta ** 4) * 100),
     ]
 
-
 def creating_session(subsession: Subsession):
     for player in subsession.get_players():
         participant = player.participant
 
         if subsession.round_number == 1:
-            environment = random.choice(['F', 'B'])
+
+            # Balanced assignment across environments:
+            # odd participant IDs -> F, even participant IDs -> B
+            participant_index = participant.id_in_session
+
+            if participant_index % 2 == 1:
+                environment = 'F'
+            else:
+                environment = 'B'
+
             selected_cases = random.sample(C.CASES, 3)
             paid_rounds = random.sample(range(1, C.NUM_ROUNDS + 1), 3)
 
