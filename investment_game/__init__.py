@@ -32,6 +32,9 @@ class C(BaseConstants):
     POUNDS_PER_EURO = 0.85
     BONUS_CAP_EUROS = 6
 
+    # Prolific completion URL. Use this in FinalResults.html as {{ prolific_completion_url }}.
+    PROLIFIC_COMPLETION_URL = 'https://app.prolific.com/submissions/complete?cc=C1OT5Q2B'
+
     CASES = [3, 4, 5]
     ROUNDS_PER_BLOCK = 7
 
@@ -255,6 +258,40 @@ def calculate_payoff(player: Player):
     player.payoff = 0
 
 
+def store_prolific_identifiers(player: Player):
+    """Store Prolific identifiers in participant.vars when available.
+
+    Important:
+    - The safest way to capture PROLIFIC_PID in oTree is to include
+      participant_label={{%PROLIFIC_PID%}} in the Prolific study URL.
+    - The export also checks PROLIFIC_PID / STUDY_ID / SESSION_ID in
+      participant.vars in case they are provided by the deployment/setup.
+    """
+    participant = player.participant
+
+    prolific_pid = (
+        participant.vars.get('prolific_pid')
+        or participant.vars.get('PROLIFIC_PID')
+        or participant.label
+    )
+
+    study_id = (
+        participant.vars.get('study_id')
+        or participant.vars.get('STUDY_ID')
+        or ''
+    )
+
+    session_id = (
+        participant.vars.get('session_id')
+        or participant.vars.get('SESSION_ID')
+        or ''
+    )
+
+    participant.vars['prolific_pid'] = prolific_pid
+    participant.vars['study_id'] = study_id
+    participant.vars['session_id'] = session_id
+
+
 class Welcome(Page):
     @staticmethod
     def is_displayed(player: Player):
@@ -263,6 +300,8 @@ class Welcome(Page):
     @staticmethod
     def before_next_page(player: Player, timeout_happened):
         participant = player.participant
+
+        store_prolific_identifiers(player)
 
         if 'experiment_start_timestamp' not in participant.vars:
             now = datetime.now()
@@ -494,6 +533,7 @@ class FinalResults(Page):
     @staticmethod
     def vars_for_template(player: Player):
         participant = player.participant
+        store_prolific_identifiers(player)
         all_players = player.in_all_rounds()
 
         paid_rounds = participant.vars.get(
@@ -521,7 +561,6 @@ class FinalResults(Page):
 
         participant.vars['investment_payment_average'] = investment_tokens
         participant.vars['holt_laury_payment'] = holt_laury_tokens
-        participant.vars['total_payment_tokens'] = raw_total_payment_tokens
 
         participant.vars['raw_total_payment_euros'] = raw_total_payment_euros
         participant.vars['raw_total_payment_pounds'] = raw_total_payment_pounds
@@ -559,6 +598,7 @@ class FinalResults(Page):
             'raw_total_payment_pounds': round(raw_total_payment_pounds, 2),
             'total_payment_euros': round(total_payment_euros, 2),
             'total_payment_pounds': round(total_payment_pounds, 2),
+            'prolific_completion_url': C.PROLIFIC_COMPLETION_URL,
         }
 
 page_sequence = [
@@ -583,6 +623,9 @@ def custom_export(players):
         # Identification
         'participant_code',
         'session_code',
+        'prolific_pid',
+        'study_id',
+        'prolific_session_id',
         'round_number',
         'round_in_block',
         'completed_participant',
@@ -651,10 +694,7 @@ def custom_export(players):
         'investment_payment_average',
         'holt_laury_payment_final',
         'total_payment_tokens',
-        'raw_total_payment_euros',
-        'raw_total_payment_pounds',
         'total_payment_euros',
-        'total_payment_pounds',
 
         # Completion timing
         'experiment_start_datetime',
@@ -665,6 +705,10 @@ def custom_export(players):
 
     for p in players:
         participant = p.participant
+
+        prolific_pid = participant.vars.get('prolific_pid', None)
+        study_id = participant.vars.get('study_id', None)
+        prolific_session_id = participant.vars.get('session_id', None)
 
         paid_rounds = participant.vars.get('paid_rounds', [])
 
@@ -771,10 +815,7 @@ def custom_export(players):
         investment_payment_average = participant.vars.get('investment_payment_average', None)
         holt_laury_payment_final = participant.vars.get('holt_laury_payment', None)
         total_payment_tokens = participant.vars.get('total_payment_tokens', None)
-        raw_total_payment_euros = participant.vars.get('raw_total_payment_euros', None)
-        raw_total_payment_pounds = participant.vars.get('raw_total_payment_pounds', None)
         total_payment_euros = participant.vars.get('total_payment_euros', None)
-        total_payment_pounds = participant.vars.get('total_payment_pounds', None)
 
         experiment_start_datetime = participant.vars.get('experiment_start_datetime', None)
         experiment_end_datetime = participant.vars.get('experiment_end_datetime', None)
@@ -790,6 +831,9 @@ def custom_export(players):
             # Identification
             participant.code,
             p.session.code,
+            prolific_pid,
+            study_id,
+            prolific_session_id,
             p.round_number,
             get_round_in_block(p.round_number),
             completed_participant,
@@ -858,10 +902,7 @@ def custom_export(players):
             round(investment_payment_average, 2) if investment_payment_average is not None else None,
             round(holt_laury_payment_final, 2) if holt_laury_payment_final is not None else None,
             round(total_payment_tokens, 2) if total_payment_tokens is not None else None,
-            round(raw_total_payment_euros, 2) if raw_total_payment_euros is not None else None,
-            round(raw_total_payment_pounds, 2) if raw_total_payment_pounds is not None else None,
             round(total_payment_euros, 2) if total_payment_euros is not None else None,
-            round(total_payment_pounds, 2) if total_payment_pounds is not None else None,
 
             # Completion timing
             experiment_start_datetime,
