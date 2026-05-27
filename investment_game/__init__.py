@@ -29,6 +29,8 @@ class C(BaseConstants):
     DELTA_MAX = 0.90
 
     TOKENS_PER_EURO = 100
+    POUNDS_PER_EURO = 0.85
+    BONUS_CAP_EUROS = 6
 
     CASES = [3, 4, 5]
     ROUNDS_PER_BLOCK = 7
