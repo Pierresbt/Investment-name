@@ -188,7 +188,15 @@ def creating_session(subsession: Subsession):
         participant = player.participant
 
         if subsession.round_number == 1:
-            environment = random.choice(['F', 'B'])
+
+            # Deterministic balanced assignment
+            participant_id = participant.id_in_session
+
+            if participant_id % 2 == 1:
+                environment = 'F'
+            else:
+                environment = 'B'
+
             selected_cases = random.sample(C.CASES, 3)
             paid_rounds = random.sample(range(1, C.NUM_ROUNDS + 1), 3)
 
