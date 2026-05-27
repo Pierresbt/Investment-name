@@ -521,6 +521,7 @@ class FinalResults(Page):
 
         participant.vars['investment_payment_average'] = investment_tokens
         participant.vars['holt_laury_payment'] = holt_laury_tokens
+        participant.vars['total_payment_tokens'] = raw_total_payment_tokens
 
         participant.vars['raw_total_payment_euros'] = raw_total_payment_euros
         participant.vars['raw_total_payment_pounds'] = raw_total_payment_pounds
@@ -650,7 +651,10 @@ def custom_export(players):
         'investment_payment_average',
         'holt_laury_payment_final',
         'total_payment_tokens',
+        'raw_total_payment_euros',
+        'raw_total_payment_pounds',
         'total_payment_euros',
+        'total_payment_pounds',
 
         # Completion timing
         'experiment_start_datetime',
@@ -767,7 +771,10 @@ def custom_export(players):
         investment_payment_average = participant.vars.get('investment_payment_average', None)
         holt_laury_payment_final = participant.vars.get('holt_laury_payment', None)
         total_payment_tokens = participant.vars.get('total_payment_tokens', None)
+        raw_total_payment_euros = participant.vars.get('raw_total_payment_euros', None)
+        raw_total_payment_pounds = participant.vars.get('raw_total_payment_pounds', None)
         total_payment_euros = participant.vars.get('total_payment_euros', None)
+        total_payment_pounds = participant.vars.get('total_payment_pounds', None)
 
         experiment_start_datetime = participant.vars.get('experiment_start_datetime', None)
         experiment_end_datetime = participant.vars.get('experiment_end_datetime', None)
@@ -851,7 +858,10 @@ def custom_export(players):
             round(investment_payment_average, 2) if investment_payment_average is not None else None,
             round(holt_laury_payment_final, 2) if holt_laury_payment_final is not None else None,
             round(total_payment_tokens, 2) if total_payment_tokens is not None else None,
+            round(raw_total_payment_euros, 2) if raw_total_payment_euros is not None else None,
+            round(raw_total_payment_pounds, 2) if raw_total_payment_pounds is not None else None,
             round(total_payment_euros, 2) if total_payment_euros is not None else None,
+            round(total_payment_pounds, 2) if total_payment_pounds is not None else None,
 
             # Completion timing
             experiment_start_datetime,
