@@ -552,27 +552,33 @@ class FinalResults(Page):
         paid_rounds = sorted(paid_rounds)
         paid_players = [p for p in all_players if p.round_number in paid_rounds]
 
+        # Average payment from the randomly selected investment rounds.
         investment_tokens = sum(p.round_tokens for p in paid_players) / len(paid_players)
 
+        # Holt-Laury payment.
         holt_laury_tokens = participant.vars.get('holt_laury_payoff', 0)
         holt_laury_paid_row = participant.vars.get('holt_laury_paid_row', None)
         holt_laury_selected_choice = participant.vars.get('holt_laury_selected_choice', None)
 
-        # Raw theoretical payment before the cap, expressed in euros and pounds.
+        # Raw total payment before the bonus cap.
         raw_total_payment_tokens = investment_tokens + holt_laury_tokens
         raw_total_payment_euros = raw_total_payment_tokens / C.TOKENS_PER_EURO
         raw_total_payment_pounds = raw_total_payment_euros * C.POUNDS_PER_EURO
 
-        # Actual performance-based bonus after the cap, expressed in euros and pounds.
+        # Actual performance-based bonus after the cap.
         total_payment_euros = min(raw_total_payment_euros, C.BONUS_CAP_EUROS)
+        total_payment_tokens = total_payment_euros * C.TOKENS_PER_EURO
         total_payment_pounds = total_payment_euros * C.POUNDS_PER_EURO
 
+        # Store all payment variables for custom export.
         participant.vars['investment_payment_average'] = investment_tokens
         participant.vars['holt_laury_payment'] = holt_laury_tokens
 
+        participant.vars['raw_total_payment_tokens'] = raw_total_payment_tokens
         participant.vars['raw_total_payment_euros'] = raw_total_payment_euros
         participant.vars['raw_total_payment_pounds'] = raw_total_payment_pounds
 
+        participant.vars['total_payment_tokens'] = total_payment_tokens
         participant.vars['total_payment_euros'] = total_payment_euros
         participant.vars['total_payment_pounds'] = total_payment_pounds
 
@@ -591,7 +597,7 @@ class FinalResults(Page):
 
         paid_rounds_text = " and ".join([f"Round {r}" for r in paid_rounds])
 
-        # oTree payoff records the actual capped bonus in pounds.
+        # oTree payoff is recorded in pounds.
         player.payoff = total_payment_pounds
 
         return {
@@ -602,8 +608,10 @@ class FinalResults(Page):
             'holt_laury_tokens': round(holt_laury_tokens, 2),
             'holt_laury_paid_row': holt_laury_paid_row,
             'holt_laury_selected_choice': holt_laury_selected_choice,
+            'raw_total_payment_tokens': round(raw_total_payment_tokens, 2),
             'raw_total_payment_euros': round(raw_total_payment_euros, 2),
             'raw_total_payment_pounds': round(raw_total_payment_pounds, 2),
+            'total_payment_tokens': round(total_payment_tokens, 2),
             'total_payment_euros': round(total_payment_euros, 2),
             'total_payment_pounds': round(total_payment_pounds, 2),
             'prolific_completion_url': C.PROLIFIC_COMPLETION_URL,
@@ -701,8 +709,12 @@ def custom_export(players):
         # Final payment variables
         'investment_payment_average',
         'holt_laury_payment_final',
+        'raw_total_payment_tokens',
+        'raw_total_payment_euros',
+        'raw_total_payment_pounds',
         'total_payment_tokens',
         'total_payment_euros',
+        'total_payment_pounds',
 
         # Completion timing
         'experiment_start_datetime',
@@ -822,8 +834,14 @@ def custom_export(players):
 
         investment_payment_average = participant.vars.get('investment_payment_average', None)
         holt_laury_payment_final = participant.vars.get('holt_laury_payment', None)
+
+        raw_total_payment_tokens = participant.vars.get('raw_total_payment_tokens', None)
+        raw_total_payment_euros = participant.vars.get('raw_total_payment_euros', None)
+        raw_total_payment_pounds = participant.vars.get('raw_total_payment_pounds', None)
+
         total_payment_tokens = participant.vars.get('total_payment_tokens', None)
         total_payment_euros = participant.vars.get('total_payment_euros', None)
+        total_payment_pounds = participant.vars.get('total_payment_pounds', None)
 
         experiment_start_datetime = participant.vars.get('experiment_start_datetime', None)
         experiment_end_datetime = participant.vars.get('experiment_end_datetime', None)
@@ -909,8 +927,12 @@ def custom_export(players):
             # Final payment variables
             round(investment_payment_average, 2) if investment_payment_average is not None else None,
             round(holt_laury_payment_final, 2) if holt_laury_payment_final is not None else None,
+            round(raw_total_payment_tokens, 2) if raw_total_payment_tokens is not None else None,
+            round(raw_total_payment_euros, 2) if raw_total_payment_euros is not None else None,
+            round(raw_total_payment_pounds, 2) if raw_total_payment_pounds is not None else None,
             round(total_payment_tokens, 2) if total_payment_tokens is not None else None,
             round(total_payment_euros, 2) if total_payment_euros is not None else None,
+            round(total_payment_pounds, 2) if total_payment_pounds is not None else None,
 
             # Completion timing
             experiment_start_datetime,
